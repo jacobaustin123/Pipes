@@ -66,7 +66,6 @@ and sstmt = (* this can be refactored using Blocks, but I haven't quite figured 
   | SAsn of lvalue list * sexpr (* x : int = sexpr, (Bind(x, int), sexpr) *)
   | STransform of string * typ * typ 
   | SStage of sstmt * sstmt * sstmt (* entry, body, exit *)
-  | SPrint of sexpr
   | SType of sexpr
   | SContinue
   | SBreak
@@ -91,16 +90,13 @@ and string_of_sexp p = function
   | SLit(l) -> string_of_lit l
   | SVar(str) -> str
   | SUnop(o, e) -> string_of_uop o ^ string_of_sexpr p e
-  | SCall(e, el, s) -> 
-      (match e with 
-        | (SPartial(_, _), _) -> string_of_sexpr false e ^ "(" ^ String.concat ", " (List.map (string_of_sexpr p) el) ^ ")"
-        | _ -> string_of_sexpr p e ^ "(" ^ String.concat ", " (List.map (string_of_sexpr p) el) ^ ")")
+  | SCall(e, el, s) -> string_of_sexpr p e ^ "(" ^ String.concat ", " (List.map (string_of_sexpr p) el) ^ ")"
   | SMethod(obj, m, el) -> string_of_sexpr p obj ^ "." ^ m ^ "(" ^ String.concat ", " (List.map (string_of_sexpr p) el) ^ ")"
   | SField(obj, s) -> string_of_sexpr p obj ^ "." ^ s
   | SList(el, t) -> "[" ^ String.concat ", " (List.map (string_of_sexpr p) el) ^ "]"
   | SListAccess(e1, e2) -> string_of_sexpr p e1 ^ "[" ^ string_of_sexpr p e2 ^ "]"
   | SListSlice(e1, e2, e3) -> string_of_sexpr p e1 ^ "[" ^ string_of_sexpr p e2 ^ ":" ^ string_of_sexpr p e3 ^ "]"
-  | SCast(t1, t2, e) -> string_of_typ t2 ^ "(" ^ string_of_sexpr p e ^ ") -> " ^ string_of_typ t1
+  | SCast(t1, t2, e) -> string_of_typ t2 ^ "(" ^ string_of_sexpr p e ^ ")"
   | SNoexpr -> ""
   | SPartial(a, b) -> 
     if p then "functools.partial(" ^ string_of_sexpr p a ^ ", " ^ String.concat ", " (List.map (string_of_sexpr p) b) ^ ")"
@@ -119,7 +115,6 @@ and string_of_sstmt depth = function
   | SClass(b, s) -> (String.make depth '\t') ^ "class " ^ b ^ ":\n" ^ string_of_sstmt (depth + 1) s
   | SAsn(lvalues, e) -> (String.make depth '\t') ^ String.concat ", " (List.map string_of_lvalue lvalues) ^ " = "  ^ string_of_sexpr true e
   | SStage(s1, s2, s3) -> string_of_sstmt depth s2
-  | SPrint(e) -> (String.make depth '\t') ^ "print(" ^ string_of_sexpr true e ^ ")"
   | SBreak -> (String.make depth '\t') ^ "break"
   | SContinue -> (String.make depth '\t') ^ "continue"
   | SNop -> ""

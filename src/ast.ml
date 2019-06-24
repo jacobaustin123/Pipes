@@ -50,7 +50,6 @@ type stmt =
   | Class of string * stmt
   | Asn of expr list * expr
   | Type of expr
-  | Print of expr
   | Import of string
   | Continue
   | Break
@@ -124,7 +123,6 @@ let rec string_of_stmt indent = function
   | Class(str, s) -> (String.make indent '\t') ^ "class " ^ str ^ ":\n" ^ string_of_stmt (indent + 1) s
   | Asn(el, e) -> (String.make indent '\t') ^ String.concat ", " (List.map string_of_expr el) ^ " = "  ^ string_of_expr e
   | Type(e) -> (String.make indent '\t') ^ string_of_expr e
-  | Print(e) -> (String.make indent '\t') ^ string_of_expr e
   | Import(e) -> (String.make indent '\t') ^ "import " ^ e
   | Nop -> ""
   | Continue -> (String.make indent '\t') ^ "continue"

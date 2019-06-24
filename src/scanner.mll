@@ -80,7 +80,6 @@ rule token = parse
   | ';' { SEP }
   | "->" { ARROW }
   | "type" { TYPE }
-  | "print" { PRINT }
   | "import" { IMPORT }
   | "lambda" { LAMBDA }
   | "|" { PIPE }

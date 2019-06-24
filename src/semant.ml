@@ -11,7 +11,7 @@ to sstmts. *)
 let needs_cast t1 t2 = 
     let except = (Failure ("STypeError: cannot cast operand of typ '" ^ string_of_typ t1 ^ "' to type '" ^ string_of_typ t2 ^ "'")) in
     match t2 with 
-    | Dyn | Arr | FuncType | Null | Object -> raise (Failure ("SSyntaxError: Invalid Syntax"))
+    | Dyn | FuncType | Null | Object -> raise (Failure ("SSyntaxError: Invalid Syntax"))
     | _ -> 
       if t1 = t2 then false
       else match (t1, t2) with
@@ -481,7 +481,6 @@ and stmt the_state = function (* evaluates statements, can pass it a func *)
 
 
   | Nop -> (the_state.locals, SNop, None, [])
-  | Print(e) -> let (t, e', _) = expr the_state e in (the_state.locals, SPrint(e'), None, [])
   | Type(e) -> let (t, e', _) = expr the_state e in
     (the_state.locals, SType(e'), None, [])
 

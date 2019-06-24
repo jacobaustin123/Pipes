@@ -13,7 +13,7 @@ Note: if any token is added here, it must also be added in the token target belo
 and in the print utility in utilities.ml */
 
 %token NOELSE ASN EQ NEQ LT GT LEQ GEQ PLUS MINUS TIMES DIVIDE PLUSEQ MINUSEQ TIMESEQ DIVIDEEQ EXPEQ
-%token EXP NOT NEG SEP AND OR ARROW NOP TYPE PRINT FUNC CONTINUE PASS BREAK LAMBDA PIPE
+%token EXP NOT NEG SEP AND OR ARROW NOP TYPE FUNC CONTINUE PASS BREAK LAMBDA PIPE
 %token TAB SPACE COLON EOF EOL IF ELSE FOR WHILE COMMA DEF IN TRUE FALSE IS RETURN NONE DOT
 %token BOOL INT FLOAT STRING ARR
 %token CLASS IMPORT CEND RANGE
@@ -144,7 +144,6 @@ token:
   | NONE { NONE }
   | DOT { DOT }
   | TYPE { TYPE }
-  | PRINT { PRINT }
   | IMPORT { IMPORT }
   | RANGE { RANGE }
   | LAMBDA { LAMBDA }
@@ -205,7 +204,6 @@ stmt:
   | lvalue DIVIDEEQ expr { Asn([$1], Binop($1, Div, $3)) }
   | lvalue EXPEQ expr { Asn([$1], Binop($1, Exp, $3)) }
   | TYPE LPAREN expr RPAREN { Type($3) }
-  | PRINT LPAREN expr RPAREN { Print($3) }
   | BREAK SEP { Break }
   | CONTINUE SEP { Continue }
   | PASS { Pass }
