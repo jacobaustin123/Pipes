@@ -301,15 +301,24 @@ let rec from_console map past run =
       | []     -> Parser.EOF 
       | h :: t -> formatted := t ; h in
 
-    let program = past @ (Parser.program token (Lexing.from_string "")) in
+    let program = (strip_print past) @ (Parser.program token (Lexing.from_string "")) in
     let imported_program = parse_imports program in
     let after_program = strip_after [] imported_program in
     let () = if !debug then print_endline ((string_of_program after_program)); flush stdout in (* print debug messages *)
     let (sast, map') = (Semant.check [] [] { forloop = false; inclass = false; cond = false; noeval = false; stack = TypeMap.empty; func = false; locals = map; globals = map; } after_program) in (* temporarily here to check validity of SAST *)
     let _ = if !debug then print_endline (string_of_sprogram sast) in (* print debug messages *)
+
+    if run then
+        let channel = open_out "parsed.py" in 
+        Printf.fprintf channel "%s" "import functools\n";
+        Printf.fprintf channel "%s" (string_of_sprogram sast);
+        close_out channel;
+        let output = cmd_to_list "python parsed.py" in
+        List.iter print_endline output;
+
     let (sast, globals) = sast in
     let sast = (strip_return [] sast, globals) in   
-    flush stdout; from_console map' after_program false
+    flush stdout; from_console map' after_program run
 
   with
     | Not_found -> Printf.printf "NotFoundError: unknown error\n"; from_console map past run

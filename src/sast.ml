@@ -113,12 +113,12 @@ and string_of_sstmt depth = function
   | SExpr(e) -> (String.make depth '\t') ^ string_of_sexpr true e
   | SIf(e, s1, s2) ->  (String.make depth '\t') ^ "if " ^ string_of_sexpr true e ^ ":\n" ^ string_of_sstmt (depth + 1) s1 ^ "else:\n" ^ string_of_sstmt (depth + 1) s2
   | SFor(b, e, s) -> (String.make depth '\t') ^ "for " ^ string_of_sbind b ^ " in " ^ string_of_sexpr true e ^ ":\n" ^ string_of_sstmt (depth + 1) s
-  | SRange(b, e, s) -> (String.make depth '\t') ^ "for " ^ string_of_sbind b ^ " in range (" ^ string_of_sexpr true e ^ ") :\n" ^ string_of_sstmt (depth + 1) s
+  | SRange(b, e, s) -> (String.make depth '\t') ^ "for " ^ string_of_sbind b ^ " in range(" ^ string_of_sexpr true e ^ ") :\n" ^ string_of_sstmt (depth + 1) s
   | SWhile(e, s) -> (String.make depth '\t') ^ "while " ^ string_of_sexpr true e ^ ":\n" ^ string_of_sstmt (depth + 1) s
   | SReturn(e) -> (String.make depth '\t') ^ "return " ^ string_of_sexpr true e
   | SClass(b, s) -> (String.make depth '\t') ^ "class " ^ b ^ ":\n" ^ string_of_sstmt (depth + 1) s
   | SAsn(lvalues, e) -> (String.make depth '\t') ^ String.concat ", " (List.map string_of_lvalue lvalues) ^ " = "  ^ string_of_sexpr true e
-  | SStage(s1, s2, s3) -> (String.make depth '\t') ^ string_of_sstmt depth s2
+  | SStage(s1, s2, s3) -> string_of_sstmt depth s2
   | SPrint(e) -> (String.make depth '\t') ^ "print(" ^ string_of_sexpr true e ^ ")"
   | SBreak -> (String.make depth '\t') ^ "break"
   | SContinue -> (String.make depth '\t') ^ "continue"

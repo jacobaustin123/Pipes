@@ -1,3 +1,9 @@
+def map(a, b):
+    pass
+
+def filter(a, b):
+    pass
+
 ls = ["hello.txt"]
 
 for i in range(5):
