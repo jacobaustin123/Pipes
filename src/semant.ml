@@ -83,11 +83,12 @@ and exp the_state = function
     if (StringMap.mem x the_state.globals) && the_state.noeval && the_state.func then (Dyn, SVar(x), None) (* we're inside a Func and this is a global *)
     else let (t', typ, data) = StringMap.find x the_state.locals in 
     (match data with 
-      | Some Func(func) when func.macro && not the_state.call -> exp (change_state the_state S_call) (Call((Var(Bind(x, t))), []))
+      | Some Func(func) when func.macro && not the_state.call && List.length func.formals == 0 -> exp (change_state the_state S_call) (Call((Var(Bind(x, t))), []))
       | _ -> (typ, SVar(x), data))
     else if the_state.noeval && the_state.func then (* we're inside a Func and this is also potentially a global that will be defined in the future *)
       let () = debug ("noeval set and possible global for " ^ x) in 
       let () = possible_globals := (Bind(x, Dyn)) :: !possible_globals in (Dyn, SVar(x), None) 
+    else if the_state.macro then (Dyn, SVar(x), None)
     else raise (Failure ("SNameError: name '" ^ x ^ "' is not defined"))
 
   | Cast(typ, e) ->
@@ -169,7 +170,7 @@ and exp the_state = function
       | Some(x) -> 
         (match x with 
           | Func(func) -> (* if evaluating the expression returns a function *)
-
+            let the_state = {the_state with macro = func.macro; } in
             let param_length = List.length args in
             if (List.length func.formals - List.length func.partials) <> param_length 
             then if param_length <> 0 then 
@@ -202,7 +203,7 @@ and exp the_state = function
             if the_state.func && TypeMap.mem (x, types) the_state.stack then let () = debug "recursive callstack return" in (Dyn, SCall(e, (List.rev exprout), transforms), None)
             else let stack' = TypeMap.add (x, types) true the_state.stack in (* check recursive stack *)
 
-            let (map2, block, data, locals) = (stmt {the_state with stack = stack'; func = true; locals = map''; call = true} func.body) in
+            let (map2, block, data, locals) = (stmt {the_state with stack = stack'; func = true; locals = map''; call = true; macro = func.macro; } func.body) in
 
             (match data with (* match return type with *)
               | Some (typ2, e', d) -> (* it did return something *)

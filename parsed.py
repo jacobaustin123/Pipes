@@ -8,9 +8,5 @@ def cd(path):
 
 def pwd():
 	return os.getcwd()
-filter(lambda x: x.endswith(".py"), ["hello.py"])
-
-
-
-
-print(list(map(lambda x: x.split(".")[0] + ".csv", filter(lambda x: x.endswith(".py"), ls()))))
+ls()
+cd(src)

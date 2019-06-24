@@ -308,7 +308,7 @@ let rec from_console map past run =
     let imported_program = parse_imports program in
     let after_program = strip_after [] imported_program in
     let () = if !debug then print_endline ((string_of_program after_program)); flush stdout in (* print debug messages *)
-    let (sast, map') = (Semant.check [] [] { forloop = false; inclass = false; cond = false; noeval = false; stack = TypeMap.empty; func = false; locals = map; globals = map; call = false; } (past @ after_program)) in (* temporarily here to check validity of SAST *)
+    let (sast, map') = (Semant.check [] [] { forloop = false; inclass = false; cond = false; noeval = false; stack = TypeMap.empty; func = false; locals = map; globals = map; call = false; macro = false; } (past @ after_program)) in (* temporarily here to check validity of SAST *)
     let _ = if !debug then print_endline (string_of_sprogram sast) in (* print debug messages *)
 
     if run then
@@ -342,7 +342,7 @@ let rec from_file map fname run = (* todo combine with loop *)
     let imported_program = parse_imports program in
     let after_program = strip_after [] imported_program in
     let () = if !debug then print_endline ((string_of_program after_program)); flush stdout in (* print debug messages *)
-    let (sast, map') = (Semant.check [] [] { forloop = false; inclass = false; cond = false; noeval = false; stack = TypeMap.empty; func = false; globals = map; locals = map; call = false; } after_program) in (* temporarily here to check validity of SAST *)
+    let (sast, map') = (Semant.check [] [] { forloop = false; inclass = false; cond = false; noeval = false; stack = TypeMap.empty; func = false; globals = map; locals = map; call = false; macro = false; } after_program) in (* temporarily here to check validity of SAST *)
     let _ = if !debug then print_endline (string_of_sprogram sast) in (* print debug messages *)
     
     if run then
@@ -368,10 +368,10 @@ let () =
   let output = cmd_to_list "truncate -s 0 parsed.py" in
 
   let header_program = ast_from_path "headers.py" in 
-  let (_, map) = (Semant.check [] [] { forloop = false; inclass = false; cond = false; noeval = false; stack = TypeMap.empty; func = false; locals = StringMap.empty; globals = StringMap.empty; call = false; } header_program) in (* temporarily here to check validity of SAST *)
+  let (_, map) = (Semant.check [] [] { forloop = false; inclass = false; cond = false; noeval = false; stack = TypeMap.empty; func = false; locals = StringMap.empty; globals = StringMap.empty; call = false; macro = false; } header_program) in (* temporarily here to check validity of SAST *)
 
   let import_program = ast_from_path "imports.py" in 
-  let (sast, map') = (Semant.check [] [] { forloop = false; inclass = false; cond = false; noeval = false; stack = TypeMap.empty; func = false; locals = map; globals = map; call = false; } import_program) in (* temporarily here to check validity of SAST *)
+  let (sast, map') = (Semant.check [] [] { forloop = false; inclass = false; cond = false; noeval = false; stack = TypeMap.empty; func = false; locals = map; globals = map; call = false; macro = false; } import_program) in (* temporarily here to check validity of SAST *)
   
   let channel = open_out "parsed.py" in 
     Printf.fprintf channel "%s" (string_of_sprogram sast);

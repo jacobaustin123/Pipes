@@ -5,6 +5,7 @@ import os
 def ls():
     return os.listdir()
 
+@macro
 def cd(path):
     os.chdir(path)
 

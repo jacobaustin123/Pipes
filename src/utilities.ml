@@ -268,6 +268,7 @@ type flag = {
   locals: (Ast.typ * Ast.typ * Ast.stmt option) StringMap.t;
   globals: (Ast.typ * Ast.typ * Ast.stmt option) StringMap.t;
   call : bool; (* is evaluating call *)
+  macro : bool;
 }
 
 type state_component = 
