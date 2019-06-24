@@ -1,0 +1,30 @@
+
+** Conflict (reduce/reduce) in state 80.
+** Tokens involved: WHILE VARIABLE TYPE TIMES STRING_LITERAL STRING SEP RPAREN RETURN RBRACK PRINT PLUS PIPE PASS OR NOT NOP NEQ MINUS LT LPAREN LEQ LBRACK LAMBDA INT_LITERAL INT IMPORT IF GT GEQ FUNC FOR FLOAT_LITERAL FLOAT EXP EQ EOF DOT DIVIDE DEF DEDENT CONTINUE COMMA COLON CLASS BREAK BOOL_LITERAL BOOL ARR AND
+** The following explanations concentrate on token VARIABLE.
+** This state is reached from program after reading:
+
+stmt_list LPAREN expr RPAREN 
+
+** The derivations that appear below have the following common factor:
+** (The question mark symbol (?) represents the spot where the derivations begin to differ.)
+
+program 
+stmt_list EOF 
+stmt_list stmt 
+          expr SEP 
+          expr exp // lookahead token appears because exp can begin with VARIABLE
+          exp // lookahead token is inherited
+          (?)
+
+** In state 80, looking ahead at VARIABLE, reducing production
+** exp -> LPAREN expr RPAREN 
+** is permitted because of the following sub-derivation:
+
+LPAREN expr RPAREN . 
+
+** In state 80, looking ahead at VARIABLE, reducing production
+** exp -> LPAREN expr RPAREN 
+** is permitted because of the following sub-derivation:
+
+LPAREN expr RPAREN . 

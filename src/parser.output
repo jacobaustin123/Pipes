@@ -1,0 +1,2234 @@
+   0  $accept : %entry% $end
+
+   1  tokenize : seq EOL
+   2           | EOL
+
+   3  seq : token
+   4      | token seq
+
+   5  token : COLON
+   6        | TAB
+   7        | SPACE
+   8        | ARROW
+   9        | RETURN
+  10        | NOT
+  11        | IF
+  12        | ELSE
+  13        | FOR
+  14        | WHILE
+  15        | DEF
+  16        | COMMA
+  17        | NEQ
+  18        | LT
+  19        | GT
+  20        | LEQ
+  21        | GEQ
+  22        | AND
+  23        | PASS
+  24        | CONTINUE
+  25        | BREAK
+  26        | OR
+  27        | IN
+  28        | TRUE
+  29        | FALSE
+  30        | IS
+  31        | PLUS
+  32        | MINUS
+  33        | TIMES
+  34        | DIVIDE
+  35        | EXP
+  36        | PLUSEQ
+  37        | MINUSEQ
+  38        | TIMESEQ
+  39        | DIVIDEEQ
+  40        | EXPEQ
+  41        | LPAREN
+  42        | RPAREN
+  43        | LBRACK
+  44        | RBRACK
+  45        | LBRACE
+  46        | RBRACE
+  47        | EQ
+  48        | ASN
+  49        | SEP
+  50        | BOOL
+  51        | INT
+  52        | FLOAT
+  53        | FUNC
+  54        | ARR
+  55        | STRING
+  56        | INDENT
+  57        | DEDENT
+  58        | VARIABLE
+  59        | FLOAT_LITERAL
+  60        | INT_LITERAL
+  61        | BOOL_LITERAL
+  62        | STRING_LITERAL
+  63        | EOF
+  64        | CLASS
+  65        | NONE
+  66        | DOT
+  67        | TYPE
+  68        | PRINT
+  69        | IMPORT
+  70        | RANGE
+  71        | LAMBDA
+  72        | PIPE
+
+  73  program : stmt_list EOF
+
+  74  stmt_list :
+  75            | stmt_list stmt
+
+  76  stmt : expr SEP
+  77       | stmt SEP
+  78       | IMPORT VARIABLE SEP
+  79       | CLASS VARIABLE COLON SEP stmt_block
+  80       | DEF VARIABLE LPAREN formals_opt RPAREN COLON SEP stmt_block
+  81       | DEF VARIABLE LPAREN formals_opt RPAREN ARROW typ COLON SEP stmt_block
+  82       | RETURN expr SEP
+  83       | IF expr COLON SEP stmt_block
+  84       | IF expr COLON SEP stmt_block ELSE COLON SEP stmt_block
+  85       | FOR bind_opt IN expr COLON SEP stmt_block
+  86       | FOR bind_opt IN RANGE LPAREN expr RPAREN COLON SEP stmt_block
+  87       | WHILE expr COLON SEP stmt_block
+  88       | formal_asn_list ASN expr
+  89       | lvalue PLUSEQ expr
+  90       | lvalue MINUSEQ expr
+  91       | lvalue TIMESEQ expr
+  92       | lvalue DIVIDEEQ expr
+  93       | lvalue EXPEQ expr
+  94       | TYPE LPAREN expr RPAREN
+  95       | PRINT LPAREN expr RPAREN
+  96       | BREAK SEP
+  97       | CONTINUE SEP
+  98       | PASS
+  99       | NOP
+
+ 100  formal_asn_list : lvalue
+ 101                  | formal_asn_list ASN lvalue
+
+ 102  lvalue : bind_opt
+ 103         | list_access
+
+ 104  bind_opt : VARIABLE
+ 105           | VARIABLE COLON typ
+
+ 106  list_access : exp LBRACK expr RBRACK
+ 107              | exp LBRACK expr COLON expr RBRACK
+
+ 108  stmt_block : INDENT stmt_list DEDENT
+
+ 109  formals_opt :
+ 110              | formal_list
+
+ 111  formal_list : bind_opt
+ 112              | formal_list COMMA bind_opt
+
+ 113  actuals_opt :
+ 114              | actuals_list
+
+ 115  actuals_list : expr
+ 116               | actuals_list COMMA expr
+
+ 117  typ : FLOAT
+ 118      | INT
+ 119      | BOOL
+ 120      | STRING
+ 121      | ARR
+ 122      | FUNC
+
+ 123  var_list : VARIABLE
+ 124           | var_list VARIABLE
+
+ 125  expr : exp
+ 126       | expr exp
+
+ 127  exp : LPAREN expr RPAREN
+ 128      | VARIABLE
+ 129      | list_access
+ 130      | LAMBDA var_list COLON exp
+
+ 131  %entry% : '\001' tokenize
+ 132          | '\002' program
+
+state 0
+	$accept : . %entry% $end  (0)
+
+	'\001'  shift 1
+	'\002'  shift 2
+	.  error
+
+	%entry%  goto 3
+
+
+state 1
+	%entry% : '\001' . tokenize  (131)
+
+	ASN  shift 4
+	EQ  shift 5
+	NEQ  shift 6
+	LT  shift 7
+	GT  shift 8
+	LEQ  shift 9
+	GEQ  shift 10
+	PLUS  shift 11
+	MINUS  shift 12
+	TIMES  shift 13
+	DIVIDE  shift 14
+	PLUSEQ  shift 15
+	MINUSEQ  shift 16
+	TIMESEQ  shift 17
+	DIVIDEEQ  shift 18
+	EXPEQ  shift 19
+	EXP  shift 20
+	NOT  shift 21
+	SEP  shift 22
+	AND  shift 23
+	OR  shift 24
+	ARROW  shift 25
+	TYPE  shift 26
+	PRINT  shift 27
+	FUNC  shift 28
+	CONTINUE  shift 29
+	PASS  shift 30
+	BREAK  shift 31
+	LAMBDA  shift 32
+	PIPE  shift 33
+	TAB  shift 34
+	SPACE  shift 35
+	COLON  shift 36
+	EOF  shift 37
+	EOL  shift 38
+	IF  shift 39
+	ELSE  shift 40
+	FOR  shift 41
+	WHILE  shift 42
+	COMMA  shift 43
+	DEF  shift 44
+	IN  shift 45
+	TRUE  shift 46
+	FALSE  shift 47
+	IS  shift 48
+	RETURN  shift 49
+	NONE  shift 50
+	DOT  shift 51
+	BOOL  shift 52
+	INT  shift 53
+	FLOAT  shift 54
+	STRING  shift 55
+	ARR  shift 56
+	CLASS  shift 57
+	IMPORT  shift 58
+	RANGE  shift 59
+	INDENT  shift 60
+	DEDENT  shift 61
+	LPAREN  shift 62
+	RPAREN  shift 63
+	LBRACK  shift 64
+	RBRACK  shift 65
+	LBRACE  shift 66
+	RBRACE  shift 67
+	VARIABLE  shift 68
+	FLOAT_LITERAL  shift 69
+	STRING_LITERAL  shift 70
+	INT_LITERAL  shift 71
+	BOOL_LITERAL  shift 72
+	.  error
+
+	tokenize  goto 73
+	seq  goto 74
+	token  goto 75
+
+
+state 2
+	%entry% : '\002' . program  (132)
+	stmt_list : .  (74)
+
+	.  reduce 74
+
+	program  goto 76
+	stmt_list  goto 77
+
+
+state 3
+	$accept : %entry% . $end  (0)
+
+	$end  accept
+
+
+state 4
+	token : ASN .  (48)
+
+	.  reduce 48
+
+
+state 5
+	token : EQ .  (47)
+
+	.  reduce 47
+
+
+state 6
+	token : NEQ .  (17)
+
+	.  reduce 17
+
+
+state 7
+	token : LT .  (18)
+
+	.  reduce 18
+
+
+state 8
+	token : GT .  (19)
+
+	.  reduce 19
+
+
+state 9
+	token : LEQ .  (20)
+
+	.  reduce 20
+
+
+state 10
+	token : GEQ .  (21)
+
+	.  reduce 21
+
+
+state 11
+	token : PLUS .  (31)
+
+	.  reduce 31
+
+
+state 12
+	token : MINUS .  (32)
+
+	.  reduce 32
+
+
+state 13
+	token : TIMES .  (33)
+
+	.  reduce 33
+
+
+state 14
+	token : DIVIDE .  (34)
+
+	.  reduce 34
+
+
+state 15
+	token : PLUSEQ .  (36)
+
+	.  reduce 36
+
+
+state 16
+	token : MINUSEQ .  (37)
+
+	.  reduce 37
+
+
+state 17
+	token : TIMESEQ .  (38)
+
+	.  reduce 38
+
+
+state 18
+	token : DIVIDEEQ .  (39)
+
+	.  reduce 39
+
+
+state 19
+	token : EXPEQ .  (40)
+
+	.  reduce 40
+
+
+state 20
+	token : EXP .  (35)
+
+	.  reduce 35
+
+
+state 21
+	token : NOT .  (10)
+
+	.  reduce 10
+
+
+state 22
+	token : SEP .  (49)
+
+	.  reduce 49
+
+
+state 23
+	token : AND .  (22)
+
+	.  reduce 22
+
+
+state 24
+	token : OR .  (26)
+
+	.  reduce 26
+
+
+state 25
+	token : ARROW .  (8)
+
+	.  reduce 8
+
+
+state 26
+	token : TYPE .  (67)
+
+	.  reduce 67
+
+
+state 27
+	token : PRINT .  (68)
+
+	.  reduce 68
+
+
+state 28
+	token : FUNC .  (53)
+
+	.  reduce 53
+
+
+state 29
+	token : CONTINUE .  (24)
+
+	.  reduce 24
+
+
+state 30
+	token : PASS .  (23)
+
+	.  reduce 23
+
+
+state 31
+	token : BREAK .  (25)
+
+	.  reduce 25
+
+
+state 32
+	token : LAMBDA .  (71)
+
+	.  reduce 71
+
+
+state 33
+	token : PIPE .  (72)
+
+	.  reduce 72
+
+
+state 34
+	token : TAB .  (6)
+
+	.  reduce 6
+
+
+state 35
+	token : SPACE .  (7)
+
+	.  reduce 7
+
+
+state 36
+	token : COLON .  (5)
+
+	.  reduce 5
+
+
+state 37
+	token : EOF .  (63)
+
+	.  reduce 63
+
+
+state 38
+	tokenize : EOL .  (2)
+
+	.  reduce 2
+
+
+state 39
+	token : IF .  (11)
+
+	.  reduce 11
+
+
+state 40
+	token : ELSE .  (12)
+
+	.  reduce 12
+
+
+state 41
+	token : FOR .  (13)
+
+	.  reduce 13
+
+
+state 42
+	token : WHILE .  (14)
+
+	.  reduce 14
+
+
+state 43
+	token : COMMA .  (16)
+
+	.  reduce 16
+
+
+state 44
+	token : DEF .  (15)
+
+	.  reduce 15
+
+
+state 45
+	token : IN .  (27)
+
+	.  reduce 27
+
+
+state 46
+	token : TRUE .  (28)
+
+	.  reduce 28
+
+
+state 47
+	token : FALSE .  (29)
+
+	.  reduce 29
+
+
+state 48
+	token : IS .  (30)
+
+	.  reduce 30
+
+
+state 49
+	token : RETURN .  (9)
+
+	.  reduce 9
+
+
+state 50
+	token : NONE .  (65)
+
+	.  reduce 65
+
+
+state 51
+	token : DOT .  (66)
+
+	.  reduce 66
+
+
+state 52
+	token : BOOL .  (50)
+
+	.  reduce 50
+
+
+state 53
+	token : INT .  (51)
+
+	.  reduce 51
+
+
+state 54
+	token : FLOAT .  (52)
+
+	.  reduce 52
+
+
+state 55
+	token : STRING .  (55)
+
+	.  reduce 55
+
+
+state 56
+	token : ARR .  (54)
+
+	.  reduce 54
+
+
+state 57
+	token : CLASS .  (64)
+
+	.  reduce 64
+
+
+state 58
+	token : IMPORT .  (69)
+
+	.  reduce 69
+
+
+state 59
+	token : RANGE .  (70)
+
+	.  reduce 70
+
+
+state 60
+	token : INDENT .  (56)
+
+	.  reduce 56
+
+
+state 61
+	token : DEDENT .  (57)
+
+	.  reduce 57
+
+
+state 62
+	token : LPAREN .  (41)
+
+	.  reduce 41
+
+
+state 63
+	token : RPAREN .  (42)
+
+	.  reduce 42
+
+
+state 64
+	token : LBRACK .  (43)
+
+	.  reduce 43
+
+
+state 65
+	token : RBRACK .  (44)
+
+	.  reduce 44
+
+
+state 66
+	token : LBRACE .  (45)
+
+	.  reduce 45
+
+
+state 67
+	token : RBRACE .  (46)
+
+	.  reduce 46
+
+
+state 68
+	token : VARIABLE .  (58)
+
+	.  reduce 58
+
+
+state 69
+	token : FLOAT_LITERAL .  (59)
+
+	.  reduce 59
+
+
+state 70
+	token : STRING_LITERAL .  (62)
+
+	.  reduce 62
+
+
+state 71
+	token : INT_LITERAL .  (60)
+
+	.  reduce 60
+
+
+state 72
+	token : BOOL_LITERAL .  (61)
+
+	.  reduce 61
+
+
+state 73
+	%entry% : '\001' tokenize .  (131)
+
+	.  reduce 131
+
+
+state 74
+	tokenize : seq . EOL  (1)
+
+	EOL  shift 78
+	.  error
+
+
+state 75
+	seq : token .  (3)
+	seq : token . seq  (4)
+
+	ASN  shift 4
+	EQ  shift 5
+	NEQ  shift 6
+	LT  shift 7
+	GT  shift 8
+	LEQ  shift 9
+	GEQ  shift 10
+	PLUS  shift 11
+	MINUS  shift 12
+	TIMES  shift 13
+	DIVIDE  shift 14
+	PLUSEQ  shift 15
+	MINUSEQ  shift 16
+	TIMESEQ  shift 17
+	DIVIDEEQ  shift 18
+	EXPEQ  shift 19
+	EXP  shift 20
+	NOT  shift 21
+	SEP  shift 22
+	AND  shift 23
+	OR  shift 24
+	ARROW  shift 25
+	TYPE  shift 26
+	PRINT  shift 27
+	FUNC  shift 28
+	CONTINUE  shift 29
+	PASS  shift 30
+	BREAK  shift 31
+	LAMBDA  shift 32
+	PIPE  shift 33
+	TAB  shift 34
+	SPACE  shift 35
+	COLON  shift 36
+	EOF  shift 37
+	IF  shift 39
+	ELSE  shift 40
+	FOR  shift 41
+	WHILE  shift 42
+	COMMA  shift 43
+	DEF  shift 44
+	IN  shift 45
+	TRUE  shift 46
+	FALSE  shift 47
+	IS  shift 48
+	RETURN  shift 49
+	NONE  shift 50
+	DOT  shift 51
+	BOOL  shift 52
+	INT  shift 53
+	FLOAT  shift 54
+	STRING  shift 55
+	ARR  shift 56
+	CLASS  shift 57
+	IMPORT  shift 58
+	RANGE  shift 59
+	INDENT  shift 60
+	DEDENT  shift 61
+	LPAREN  shift 62
+	RPAREN  shift 63
+	LBRACK  shift 64
+	RBRACK  shift 65
+	LBRACE  shift 66
+	RBRACE  shift 67
+	VARIABLE  shift 68
+	FLOAT_LITERAL  shift 69
+	STRING_LITERAL  shift 70
+	INT_LITERAL  shift 71
+	BOOL_LITERAL  shift 72
+	EOL  reduce 3
+
+	seq  goto 79
+	token  goto 75
+
+
+state 76
+	%entry% : '\002' program .  (132)
+
+	.  reduce 132
+
+
+state 77
+	program : stmt_list . EOF  (73)
+	stmt_list : stmt_list . stmt  (75)
+
+	NOP  shift 80
+	TYPE  shift 81
+	PRINT  shift 82
+	CONTINUE  shift 83
+	PASS  shift 84
+	BREAK  shift 85
+	LAMBDA  shift 86
+	EOF  shift 87
+	IF  shift 88
+	FOR  shift 89
+	WHILE  shift 90
+	DEF  shift 91
+	RETURN  shift 92
+	CLASS  shift 93
+	IMPORT  shift 94
+	LPAREN  shift 95
+	VARIABLE  shift 96
+	.  error
+
+	stmt  goto 97
+	expr  goto 98
+	bind_opt  goto 99
+	formal_asn_list  goto 100
+	lvalue  goto 101
+	list_access  goto 102
+	exp  goto 103
+
+
+state 78
+	tokenize : seq EOL .  (1)
+
+	.  reduce 1
+
+
+state 79
+	seq : token seq .  (4)
+
+	.  reduce 4
+
+
+state 80
+	stmt : NOP .  (99)
+
+	.  reduce 99
+
+
+state 81
+	stmt : TYPE . LPAREN expr RPAREN  (94)
+
+	LPAREN  shift 104
+	.  error
+
+
+state 82
+	stmt : PRINT . LPAREN expr RPAREN  (95)
+
+	LPAREN  shift 105
+	.  error
+
+
+state 83
+	stmt : CONTINUE . SEP  (97)
+
+	SEP  shift 106
+	.  error
+
+
+state 84
+	stmt : PASS .  (98)
+
+	.  reduce 98
+
+
+state 85
+	stmt : BREAK . SEP  (96)
+
+	SEP  shift 107
+	.  error
+
+
+state 86
+	exp : LAMBDA . var_list COLON exp  (130)
+
+	VARIABLE  shift 108
+	.  error
+
+	var_list  goto 109
+
+
+state 87
+	program : stmt_list EOF .  (73)
+
+	.  reduce 73
+
+
+state 88
+	stmt : IF . expr COLON SEP stmt_block  (83)
+	stmt : IF . expr COLON SEP stmt_block ELSE COLON SEP stmt_block  (84)
+
+	LAMBDA  shift 86
+	LPAREN  shift 95
+	VARIABLE  shift 110
+	.  error
+
+	expr  goto 111
+	list_access  goto 112
+	exp  goto 103
+
+
+state 89
+	stmt : FOR . bind_opt IN expr COLON SEP stmt_block  (85)
+	stmt : FOR . bind_opt IN RANGE LPAREN expr RPAREN COLON SEP stmt_block  (86)
+
+	VARIABLE  shift 113
+	.  error
+
+	bind_opt  goto 114
+
+
+state 90
+	stmt : WHILE . expr COLON SEP stmt_block  (87)
+
+	LAMBDA  shift 86
+	LPAREN  shift 95
+	VARIABLE  shift 110
+	.  error
+
+	expr  goto 115
+	list_access  goto 112
+	exp  goto 103
+
+
+state 91
+	stmt : DEF . VARIABLE LPAREN formals_opt RPAREN COLON SEP stmt_block  (80)
+	stmt : DEF . VARIABLE LPAREN formals_opt RPAREN ARROW typ COLON SEP stmt_block  (81)
+
+	VARIABLE  shift 116
+	.  error
+
+
+state 92
+	stmt : RETURN . expr SEP  (82)
+
+	LAMBDA  shift 86
+	LPAREN  shift 95
+	VARIABLE  shift 110
+	.  error
+
+	expr  goto 117
+	list_access  goto 112
+	exp  goto 103
+
+
+state 93
+	stmt : CLASS . VARIABLE COLON SEP stmt_block  (79)
+
+	VARIABLE  shift 118
+	.  error
+
+
+state 94
+	stmt : IMPORT . VARIABLE SEP  (78)
+
+	VARIABLE  shift 119
+	.  error
+
+
+state 95
+	exp : LPAREN . expr RPAREN  (127)
+
+	LAMBDA  shift 86
+	LPAREN  shift 95
+	VARIABLE  shift 110
+	.  error
+
+	expr  goto 120
+	list_access  goto 112
+	exp  goto 103
+
+
+state 96
+	bind_opt : VARIABLE .  (104)
+	bind_opt : VARIABLE . COLON typ  (105)
+	exp : VARIABLE .  (128)
+
+	COLON  shift 121
+	ASN  reduce 104
+	PLUSEQ  reduce 104
+	MINUSEQ  reduce 104
+	TIMESEQ  reduce 104
+	DIVIDEEQ  reduce 104
+	EXPEQ  reduce 104
+	SEP  reduce 128
+	NOP  reduce 128
+	TYPE  reduce 128
+	PRINT  reduce 128
+	CONTINUE  reduce 128
+	PASS  reduce 128
+	BREAK  reduce 128
+	LAMBDA  reduce 128
+	EOF  reduce 128
+	IF  reduce 128
+	FOR  reduce 128
+	WHILE  reduce 128
+	DEF  reduce 128
+	RETURN  reduce 128
+	CLASS  reduce 128
+	IMPORT  reduce 128
+	DEDENT  reduce 128
+	LPAREN  reduce 128
+	LBRACK  reduce 128
+	VARIABLE  reduce 128
+
+
+state 97
+	stmt_list : stmt_list stmt .  (75)
+	stmt : stmt . SEP  (77)
+
+	SEP  shift 122
+	NOP  reduce 75
+	TYPE  reduce 75
+	PRINT  reduce 75
+	CONTINUE  reduce 75
+	PASS  reduce 75
+	BREAK  reduce 75
+	LAMBDA  reduce 75
+	EOF  reduce 75
+	IF  reduce 75
+	FOR  reduce 75
+	WHILE  reduce 75
+	DEF  reduce 75
+	RETURN  reduce 75
+	CLASS  reduce 75
+	IMPORT  reduce 75
+	DEDENT  reduce 75
+	LPAREN  reduce 75
+	VARIABLE  reduce 75
+
+
+state 98
+	stmt : expr . SEP  (76)
+	expr : expr . exp  (126)
+
+	SEP  shift 123
+	LAMBDA  shift 86
+	LPAREN  shift 95
+	VARIABLE  shift 110
+	.  error
+
+	list_access  goto 112
+	exp  goto 124
+
+
+state 99
+	lvalue : bind_opt .  (102)
+
+	.  reduce 102
+
+
+state 100
+	stmt : formal_asn_list . ASN expr  (88)
+	formal_asn_list : formal_asn_list . ASN lvalue  (101)
+
+	ASN  shift 125
+	.  error
+
+
+state 101
+	stmt : lvalue . PLUSEQ expr  (89)
+	stmt : lvalue . MINUSEQ expr  (90)
+	stmt : lvalue . TIMESEQ expr  (91)
+	stmt : lvalue . DIVIDEEQ expr  (92)
+	stmt : lvalue . EXPEQ expr  (93)
+	formal_asn_list : lvalue .  (100)
+
+	PLUSEQ  shift 126
+	MINUSEQ  shift 127
+	TIMESEQ  shift 128
+	DIVIDEEQ  shift 129
+	EXPEQ  shift 130
+	ASN  reduce 100
+
+
+state 102
+	lvalue : list_access .  (103)
+	exp : list_access .  (129)
+
+	ASN  reduce 103
+	PLUSEQ  reduce 103
+	MINUSEQ  reduce 103
+	TIMESEQ  reduce 103
+	DIVIDEEQ  reduce 103
+	EXPEQ  reduce 103
+	SEP  reduce 129
+	NOP  reduce 129
+	TYPE  reduce 129
+	PRINT  reduce 129
+	CONTINUE  reduce 129
+	PASS  reduce 129
+	BREAK  reduce 129
+	LAMBDA  reduce 129
+	EOF  reduce 129
+	IF  reduce 129
+	FOR  reduce 129
+	WHILE  reduce 129
+	DEF  reduce 129
+	RETURN  reduce 129
+	CLASS  reduce 129
+	IMPORT  reduce 129
+	DEDENT  reduce 129
+	LPAREN  reduce 129
+	LBRACK  reduce 129
+	VARIABLE  reduce 129
+
+
+state 103
+	list_access : exp . LBRACK expr RBRACK  (106)
+	list_access : exp . LBRACK expr COLON expr RBRACK  (107)
+	expr : exp .  (125)
+
+	LBRACK  shift 131
+	SEP  reduce 125
+	NOP  reduce 125
+	TYPE  reduce 125
+	PRINT  reduce 125
+	CONTINUE  reduce 125
+	PASS  reduce 125
+	BREAK  reduce 125
+	LAMBDA  reduce 125
+	COLON  reduce 125
+	EOF  reduce 125
+	IF  reduce 125
+	FOR  reduce 125
+	WHILE  reduce 125
+	DEF  reduce 125
+	RETURN  reduce 125
+	CLASS  reduce 125
+	IMPORT  reduce 125
+	DEDENT  reduce 125
+	LPAREN  reduce 125
+	RPAREN  reduce 125
+	RBRACK  reduce 125
+	VARIABLE  reduce 125
+
+
+state 104
+	stmt : TYPE LPAREN . expr RPAREN  (94)
+
+	LAMBDA  shift 86
+	LPAREN  shift 95
+	VARIABLE  shift 110
+	.  error
+
+	expr  goto 132
+	list_access  goto 112
+	exp  goto 103
+
+
+state 105
+	stmt : PRINT LPAREN . expr RPAREN  (95)
+
+	LAMBDA  shift 86
+	LPAREN  shift 95
+	VARIABLE  shift 110
+	.  error
+
+	expr  goto 133
+	list_access  goto 112
+	exp  goto 103
+
+
+state 106
+	stmt : CONTINUE SEP .  (97)
+
+	.  reduce 97
+
+
+state 107
+	stmt : BREAK SEP .  (96)
+
+	.  reduce 96
+
+
+state 108
+	var_list : VARIABLE .  (123)
+
+	.  reduce 123
+
+
+state 109
+	var_list : var_list . VARIABLE  (124)
+	exp : LAMBDA var_list . COLON exp  (130)
+
+	COLON  shift 134
+	VARIABLE  shift 135
+	.  error
+
+
+state 110
+	exp : VARIABLE .  (128)
+
+	.  reduce 128
+
+
+state 111
+	stmt : IF expr . COLON SEP stmt_block  (83)
+	stmt : IF expr . COLON SEP stmt_block ELSE COLON SEP stmt_block  (84)
+	expr : expr . exp  (126)
+
+	LAMBDA  shift 86
+	COLON  shift 136
+	LPAREN  shift 95
+	VARIABLE  shift 110
+	.  error
+
+	list_access  goto 112
+	exp  goto 124
+
+
+state 112
+	exp : list_access .  (129)
+
+	.  reduce 129
+
+
+state 113
+	bind_opt : VARIABLE .  (104)
+	bind_opt : VARIABLE . COLON typ  (105)
+
+	COLON  shift 121
+	COMMA  reduce 104
+	IN  reduce 104
+	RPAREN  reduce 104
+
+
+state 114
+	stmt : FOR bind_opt . IN expr COLON SEP stmt_block  (85)
+	stmt : FOR bind_opt . IN RANGE LPAREN expr RPAREN COLON SEP stmt_block  (86)
+
+	IN  shift 137
+	.  error
+
+
+state 115
+	stmt : WHILE expr . COLON SEP stmt_block  (87)
+	expr : expr . exp  (126)
+
+	LAMBDA  shift 86
+	COLON  shift 138
+	LPAREN  shift 95
+	VARIABLE  shift 110
+	.  error
+
+	list_access  goto 112
+	exp  goto 124
+
+
+state 116
+	stmt : DEF VARIABLE . LPAREN formals_opt RPAREN COLON SEP stmt_block  (80)
+	stmt : DEF VARIABLE . LPAREN formals_opt RPAREN ARROW typ COLON SEP stmt_block  (81)
+
+	LPAREN  shift 139
+	.  error
+
+
+state 117
+	stmt : RETURN expr . SEP  (82)
+	expr : expr . exp  (126)
+
+	SEP  shift 140
+	LAMBDA  shift 86
+	LPAREN  shift 95
+	VARIABLE  shift 110
+	.  error
+
+	list_access  goto 112
+	exp  goto 124
+
+
+state 118
+	stmt : CLASS VARIABLE . COLON SEP stmt_block  (79)
+
+	COLON  shift 141
+	.  error
+
+
+state 119
+	stmt : IMPORT VARIABLE . SEP  (78)
+
+	SEP  shift 142
+	.  error
+
+
+state 120
+	expr : expr . exp  (126)
+	exp : LPAREN expr . RPAREN  (127)
+
+	LAMBDA  shift 86
+	LPAREN  shift 95
+	RPAREN  shift 143
+	VARIABLE  shift 110
+	.  error
+
+	list_access  goto 112
+	exp  goto 124
+
+
+state 121
+	bind_opt : VARIABLE COLON . typ  (105)
+
+	FUNC  shift 144
+	BOOL  shift 145
+	INT  shift 146
+	FLOAT  shift 147
+	STRING  shift 148
+	ARR  shift 149
+	.  error
+
+	typ  goto 150
+
+
+state 122
+	stmt : stmt SEP .  (77)
+
+	.  reduce 77
+
+
+state 123
+	stmt : expr SEP .  (76)
+
+	.  reduce 76
+
+
+state 124
+	list_access : exp . LBRACK expr RBRACK  (106)
+	list_access : exp . LBRACK expr COLON expr RBRACK  (107)
+	expr : expr exp .  (126)
+
+	LBRACK  shift 131
+	SEP  reduce 126
+	NOP  reduce 126
+	TYPE  reduce 126
+	PRINT  reduce 126
+	CONTINUE  reduce 126
+	PASS  reduce 126
+	BREAK  reduce 126
+	LAMBDA  reduce 126
+	COLON  reduce 126
+	EOF  reduce 126
+	IF  reduce 126
+	FOR  reduce 126
+	WHILE  reduce 126
+	DEF  reduce 126
+	RETURN  reduce 126
+	CLASS  reduce 126
+	IMPORT  reduce 126
+	DEDENT  reduce 126
+	LPAREN  reduce 126
+	RPAREN  reduce 126
+	RBRACK  reduce 126
+	VARIABLE  reduce 126
+
+
+state 125
+	stmt : formal_asn_list ASN . expr  (88)
+	formal_asn_list : formal_asn_list ASN . lvalue  (101)
+
+	LAMBDA  shift 86
+	LPAREN  shift 95
+	VARIABLE  shift 96
+	.  error
+
+	expr  goto 151
+	bind_opt  goto 99
+	lvalue  goto 152
+	list_access  goto 102
+	exp  goto 103
+
+
+state 126
+	stmt : lvalue PLUSEQ . expr  (89)
+
+	LAMBDA  shift 86
+	LPAREN  shift 95
+	VARIABLE  shift 110
+	.  error
+
+	expr  goto 153
+	list_access  goto 112
+	exp  goto 103
+
+
+state 127
+	stmt : lvalue MINUSEQ . expr  (90)
+
+	LAMBDA  shift 86
+	LPAREN  shift 95
+	VARIABLE  shift 110
+	.  error
+
+	expr  goto 154
+	list_access  goto 112
+	exp  goto 103
+
+
+state 128
+	stmt : lvalue TIMESEQ . expr  (91)
+
+	LAMBDA  shift 86
+	LPAREN  shift 95
+	VARIABLE  shift 110
+	.  error
+
+	expr  goto 155
+	list_access  goto 112
+	exp  goto 103
+
+
+state 129
+	stmt : lvalue DIVIDEEQ . expr  (92)
+
+	LAMBDA  shift 86
+	LPAREN  shift 95
+	VARIABLE  shift 110
+	.  error
+
+	expr  goto 156
+	list_access  goto 112
+	exp  goto 103
+
+
+state 130
+	stmt : lvalue EXPEQ . expr  (93)
+
+	LAMBDA  shift 86
+	LPAREN  shift 95
+	VARIABLE  shift 110
+	.  error
+
+	expr  goto 157
+	list_access  goto 112
+	exp  goto 103
+
+
+state 131
+	list_access : exp LBRACK . expr RBRACK  (106)
+	list_access : exp LBRACK . expr COLON expr RBRACK  (107)
+
+	LAMBDA  shift 86
+	LPAREN  shift 95
+	VARIABLE  shift 110
+	.  error
+
+	expr  goto 158
+	list_access  goto 112
+	exp  goto 103
+
+
+state 132
+	stmt : TYPE LPAREN expr . RPAREN  (94)
+	expr : expr . exp  (126)
+
+	LAMBDA  shift 86
+	LPAREN  shift 95
+	RPAREN  shift 159
+	VARIABLE  shift 110
+	.  error
+
+	list_access  goto 112
+	exp  goto 124
+
+
+state 133
+	stmt : PRINT LPAREN expr . RPAREN  (95)
+	expr : expr . exp  (126)
+
+	LAMBDA  shift 86
+	LPAREN  shift 95
+	RPAREN  shift 160
+	VARIABLE  shift 110
+	.  error
+
+	list_access  goto 112
+	exp  goto 124
+
+
+state 134
+	exp : LAMBDA var_list COLON . exp  (130)
+
+	LAMBDA  shift 86
+	LPAREN  shift 95
+	VARIABLE  shift 110
+	.  error
+
+	list_access  goto 112
+	exp  goto 161
+
+
+state 135
+	var_list : var_list VARIABLE .  (124)
+
+	.  reduce 124
+
+
+state 136
+	stmt : IF expr COLON . SEP stmt_block  (83)
+	stmt : IF expr COLON . SEP stmt_block ELSE COLON SEP stmt_block  (84)
+
+	SEP  shift 162
+	.  error
+
+
+state 137
+	stmt : FOR bind_opt IN . expr COLON SEP stmt_block  (85)
+	stmt : FOR bind_opt IN . RANGE LPAREN expr RPAREN COLON SEP stmt_block  (86)
+
+	LAMBDA  shift 86
+	RANGE  shift 163
+	LPAREN  shift 95
+	VARIABLE  shift 110
+	.  error
+
+	expr  goto 164
+	list_access  goto 112
+	exp  goto 103
+
+
+state 138
+	stmt : WHILE expr COLON . SEP stmt_block  (87)
+
+	SEP  shift 165
+	.  error
+
+
+state 139
+	stmt : DEF VARIABLE LPAREN . formals_opt RPAREN COLON SEP stmt_block  (80)
+	stmt : DEF VARIABLE LPAREN . formals_opt RPAREN ARROW typ COLON SEP stmt_block  (81)
+	formals_opt : .  (109)
+
+	VARIABLE  shift 113
+	RPAREN  reduce 109
+
+	formals_opt  goto 166
+	bind_opt  goto 167
+	formal_list  goto 168
+
+
+state 140
+	stmt : RETURN expr SEP .  (82)
+
+	.  reduce 82
+
+
+state 141
+	stmt : CLASS VARIABLE COLON . SEP stmt_block  (79)
+
+	SEP  shift 169
+	.  error
+
+
+state 142
+	stmt : IMPORT VARIABLE SEP .  (78)
+
+	.  reduce 78
+
+
+state 143
+	exp : LPAREN expr RPAREN .  (127)
+
+	.  reduce 127
+
+
+state 144
+	typ : FUNC .  (122)
+
+	.  reduce 122
+
+
+state 145
+	typ : BOOL .  (119)
+
+	.  reduce 119
+
+
+state 146
+	typ : INT .  (118)
+
+	.  reduce 118
+
+
+state 147
+	typ : FLOAT .  (117)
+
+	.  reduce 117
+
+
+state 148
+	typ : STRING .  (120)
+
+	.  reduce 120
+
+
+state 149
+	typ : ARR .  (121)
+
+	.  reduce 121
+
+
+state 150
+	bind_opt : VARIABLE COLON typ .  (105)
+
+	.  reduce 105
+
+
+151: shift/reduce conflict (shift 110, reduce 88) on VARIABLE
+state 151
+	stmt : formal_asn_list ASN expr .  (88)
+	expr : expr . exp  (126)
+
+	LAMBDA  shift 86
+	LPAREN  shift 95
+	VARIABLE  shift 110
+	SEP  reduce 88
+	NOP  reduce 88
+	TYPE  reduce 88
+	PRINT  reduce 88
+	CONTINUE  reduce 88
+	PASS  reduce 88
+	BREAK  reduce 88
+	EOF  reduce 88
+	IF  reduce 88
+	FOR  reduce 88
+	WHILE  reduce 88
+	DEF  reduce 88
+	RETURN  reduce 88
+	CLASS  reduce 88
+	IMPORT  reduce 88
+	DEDENT  reduce 88
+
+	list_access  goto 112
+	exp  goto 124
+
+
+state 152
+	formal_asn_list : formal_asn_list ASN lvalue .  (101)
+
+	.  reduce 101
+
+
+153: shift/reduce conflict (shift 110, reduce 89) on VARIABLE
+state 153
+	stmt : lvalue PLUSEQ expr .  (89)
+	expr : expr . exp  (126)
+
+	LAMBDA  shift 86
+	LPAREN  shift 95
+	VARIABLE  shift 110
+	SEP  reduce 89
+	NOP  reduce 89
+	TYPE  reduce 89
+	PRINT  reduce 89
+	CONTINUE  reduce 89
+	PASS  reduce 89
+	BREAK  reduce 89
+	EOF  reduce 89
+	IF  reduce 89
+	FOR  reduce 89
+	WHILE  reduce 89
+	DEF  reduce 89
+	RETURN  reduce 89
+	CLASS  reduce 89
+	IMPORT  reduce 89
+	DEDENT  reduce 89
+
+	list_access  goto 112
+	exp  goto 124
+
+
+154: shift/reduce conflict (shift 110, reduce 90) on VARIABLE
+state 154
+	stmt : lvalue MINUSEQ expr .  (90)
+	expr : expr . exp  (126)
+
+	LAMBDA  shift 86
+	LPAREN  shift 95
+	VARIABLE  shift 110
+	SEP  reduce 90
+	NOP  reduce 90
+	TYPE  reduce 90
+	PRINT  reduce 90
+	CONTINUE  reduce 90
+	PASS  reduce 90
+	BREAK  reduce 90
+	EOF  reduce 90
+	IF  reduce 90
+	FOR  reduce 90
+	WHILE  reduce 90
+	DEF  reduce 90
+	RETURN  reduce 90
+	CLASS  reduce 90
+	IMPORT  reduce 90
+	DEDENT  reduce 90
+
+	list_access  goto 112
+	exp  goto 124
+
+
+155: shift/reduce conflict (shift 110, reduce 91) on VARIABLE
+state 155
+	stmt : lvalue TIMESEQ expr .  (91)
+	expr : expr . exp  (126)
+
+	LAMBDA  shift 86
+	LPAREN  shift 95
+	VARIABLE  shift 110
+	SEP  reduce 91
+	NOP  reduce 91
+	TYPE  reduce 91
+	PRINT  reduce 91
+	CONTINUE  reduce 91
+	PASS  reduce 91
+	BREAK  reduce 91
+	EOF  reduce 91
+	IF  reduce 91
+	FOR  reduce 91
+	WHILE  reduce 91
+	DEF  reduce 91
+	RETURN  reduce 91
+	CLASS  reduce 91
+	IMPORT  reduce 91
+	DEDENT  reduce 91
+
+	list_access  goto 112
+	exp  goto 124
+
+
+156: shift/reduce conflict (shift 110, reduce 92) on VARIABLE
+state 156
+	stmt : lvalue DIVIDEEQ expr .  (92)
+	expr : expr . exp  (126)
+
+	LAMBDA  shift 86
+	LPAREN  shift 95
+	VARIABLE  shift 110
+	SEP  reduce 92
+	NOP  reduce 92
+	TYPE  reduce 92
+	PRINT  reduce 92
+	CONTINUE  reduce 92
+	PASS  reduce 92
+	BREAK  reduce 92
+	EOF  reduce 92
+	IF  reduce 92
+	FOR  reduce 92
+	WHILE  reduce 92
+	DEF  reduce 92
+	RETURN  reduce 92
+	CLASS  reduce 92
+	IMPORT  reduce 92
+	DEDENT  reduce 92
+
+	list_access  goto 112
+	exp  goto 124
+
+
+157: shift/reduce conflict (shift 110, reduce 93) on VARIABLE
+state 157
+	stmt : lvalue EXPEQ expr .  (93)
+	expr : expr . exp  (126)
+
+	LPAREN  shift 95
+	VARIABLE  shift 110
+	SEP  reduce 93
+	NOP  reduce 93
+	TYPE  reduce 93
+	PRINT  reduce 93
+	CONTINUE  reduce 93
+	PASS  reduce 93
+	BREAK  reduce 93
+	LAMBDA  reduce 93
+	EOF  reduce 93
+	IF  reduce 93
+	FOR  reduce 93
+	WHILE  reduce 93
+	DEF  reduce 93
+	RETURN  reduce 93
+	CLASS  reduce 93
+	IMPORT  reduce 93
+	DEDENT  reduce 93
+
+	list_access  goto 112
+	exp  goto 124
+
+
+state 158
+	list_access : exp LBRACK expr . RBRACK  (106)
+	list_access : exp LBRACK expr . COLON expr RBRACK  (107)
+	expr : expr . exp  (126)
+
+	LAMBDA  shift 86
+	COLON  shift 170
+	LPAREN  shift 95
+	RBRACK  shift 171
+	VARIABLE  shift 110
+	.  error
+
+	list_access  goto 112
+	exp  goto 124
+
+
+state 159
+	stmt : TYPE LPAREN expr RPAREN .  (94)
+
+	.  reduce 94
+
+
+state 160
+	stmt : PRINT LPAREN expr RPAREN .  (95)
+
+	.  reduce 95
+
+
+state 161
+	list_access : exp . LBRACK expr RBRACK  (106)
+	list_access : exp . LBRACK expr COLON expr RBRACK  (107)
+	exp : LAMBDA var_list COLON exp .  (130)
+
+	LBRACK  shift 131
+	SEP  reduce 130
+	NOP  reduce 130
+	TYPE  reduce 130
+	PRINT  reduce 130
+	CONTINUE  reduce 130
+	PASS  reduce 130
+	BREAK  reduce 130
+	LAMBDA  reduce 130
+	COLON  reduce 130
+	EOF  reduce 130
+	IF  reduce 130
+	FOR  reduce 130
+	WHILE  reduce 130
+	DEF  reduce 130
+	RETURN  reduce 130
+	CLASS  reduce 130
+	IMPORT  reduce 130
+	DEDENT  reduce 130
+	LPAREN  reduce 130
+	RPAREN  reduce 130
+	RBRACK  reduce 130
+	VARIABLE  reduce 130
+
+
+state 162
+	stmt : IF expr COLON SEP . stmt_block  (83)
+	stmt : IF expr COLON SEP . stmt_block ELSE COLON SEP stmt_block  (84)
+
+	INDENT  shift 172
+	.  error
+
+	stmt_block  goto 173
+
+
+state 163
+	stmt : FOR bind_opt IN RANGE . LPAREN expr RPAREN COLON SEP stmt_block  (86)
+
+	LPAREN  shift 174
+	.  error
+
+
+state 164
+	stmt : FOR bind_opt IN expr . COLON SEP stmt_block  (85)
+	expr : expr . exp  (126)
+
+	LAMBDA  shift 86
+	COLON  shift 175
+	LPAREN  shift 95
+	VARIABLE  shift 110
+	.  error
+
+	list_access  goto 112
+	exp  goto 124
+
+
+state 165
+	stmt : WHILE expr COLON SEP . stmt_block  (87)
+
+	INDENT  shift 172
+	.  error
+
+	stmt_block  goto 176
+
+
+state 166
+	stmt : DEF VARIABLE LPAREN formals_opt . RPAREN COLON SEP stmt_block  (80)
+	stmt : DEF VARIABLE LPAREN formals_opt . RPAREN ARROW typ COLON SEP stmt_block  (81)
+
+	RPAREN  shift 177
+	.  error
+
+
+state 167
+	formal_list : bind_opt .  (111)
+
+	.  reduce 111
+
+
+state 168
+	formals_opt : formal_list .  (110)
+	formal_list : formal_list . COMMA bind_opt  (112)
+
+	COMMA  shift 178
+	RPAREN  reduce 110
+
+
+state 169
+	stmt : CLASS VARIABLE COLON SEP . stmt_block  (79)
+
+	INDENT  shift 172
+	.  error
+
+	stmt_block  goto 179
+
+
+state 170
+	list_access : exp LBRACK expr COLON . expr RBRACK  (107)
+
+	LAMBDA  shift 86
+	LPAREN  shift 95
+	VARIABLE  shift 110
+	.  error
+
+	expr  goto 180
+	list_access  goto 112
+	exp  goto 103
+
+
+state 171
+	list_access : exp LBRACK expr RBRACK .  (106)
+
+	.  reduce 106
+
+
+state 172
+	stmt_block : INDENT . stmt_list DEDENT  (108)
+	stmt_list : .  (74)
+
+	.  reduce 74
+
+	stmt_list  goto 181
+
+
+state 173
+	stmt : IF expr COLON SEP stmt_block .  (83)
+	stmt : IF expr COLON SEP stmt_block . ELSE COLON SEP stmt_block  (84)
+
+	ELSE  shift 182
+	SEP  reduce 83
+	NOP  reduce 83
+	TYPE  reduce 83
+	PRINT  reduce 83
+	CONTINUE  reduce 83
+	PASS  reduce 83
+	BREAK  reduce 83
+	LAMBDA  reduce 83
+	EOF  reduce 83
+	IF  reduce 83
+	FOR  reduce 83
+	WHILE  reduce 83
+	DEF  reduce 83
+	RETURN  reduce 83
+	CLASS  reduce 83
+	IMPORT  reduce 83
+	DEDENT  reduce 83
+	LPAREN  reduce 83
+	VARIABLE  reduce 83
+
+
+state 174
+	stmt : FOR bind_opt IN RANGE LPAREN . expr RPAREN COLON SEP stmt_block  (86)
+
+	LAMBDA  shift 86
+	LPAREN  shift 95
+	VARIABLE  shift 110
+	.  error
+
+	expr  goto 183
+	list_access  goto 112
+	exp  goto 103
+
+
+state 175
+	stmt : FOR bind_opt IN expr COLON . SEP stmt_block  (85)
+
+	SEP  shift 184
+	.  error
+
+
+state 176
+	stmt : WHILE expr COLON SEP stmt_block .  (87)
+
+	.  reduce 87
+
+
+state 177
+	stmt : DEF VARIABLE LPAREN formals_opt RPAREN . COLON SEP stmt_block  (80)
+	stmt : DEF VARIABLE LPAREN formals_opt RPAREN . ARROW typ COLON SEP stmt_block  (81)
+
+	ARROW  shift 185
+	COLON  shift 186
+	.  error
+
+
+state 178
+	formal_list : formal_list COMMA . bind_opt  (112)
+
+	VARIABLE  shift 113
+	.  error
+
+	bind_opt  goto 187
+
+
+state 179
+	stmt : CLASS VARIABLE COLON SEP stmt_block .  (79)
+
+	.  reduce 79
+
+
+state 180
+	list_access : exp LBRACK expr COLON expr . RBRACK  (107)
+	expr : expr . exp  (126)
+
+	LAMBDA  shift 86
+	LPAREN  shift 95
+	RBRACK  shift 188
+	VARIABLE  shift 110
+	.  error
+
+	list_access  goto 112
+	exp  goto 124
+
+
+state 181
+	stmt_list : stmt_list . stmt  (75)
+	stmt_block : INDENT stmt_list . DEDENT  (108)
+
+	NOP  shift 80
+	TYPE  shift 81
+	PRINT  shift 82
+	CONTINUE  shift 83
+	PASS  shift 84
+	BREAK  shift 85
+	LAMBDA  shift 86
+	IF  shift 88
+	FOR  shift 89
+	WHILE  shift 90
+	DEF  shift 91
+	RETURN  shift 92
+	CLASS  shift 93
+	IMPORT  shift 94
+	DEDENT  shift 189
+	LPAREN  shift 95
+	VARIABLE  shift 96
+	.  error
+
+	stmt  goto 97
+	expr  goto 98
+	bind_opt  goto 99
+	formal_asn_list  goto 100
+	lvalue  goto 101
+	list_access  goto 102
+	exp  goto 103
+
+
+state 182
+	stmt : IF expr COLON SEP stmt_block ELSE . COLON SEP stmt_block  (84)
+
+	COLON  shift 190
+	.  error
+
+
+state 183
+	stmt : FOR bind_opt IN RANGE LPAREN expr . RPAREN COLON SEP stmt_block  (86)
+	expr : expr . exp  (126)
+
+	LAMBDA  shift 86
+	LPAREN  shift 95
+	RPAREN  shift 191
+	VARIABLE  shift 110
+	.  error
+
+	list_access  goto 112
+	exp  goto 124
+
+
+state 184
+	stmt : FOR bind_opt IN expr COLON SEP . stmt_block  (85)
+
+	INDENT  shift 172
+	.  error
+
+	stmt_block  goto 192
+
+
+state 185
+	stmt : DEF VARIABLE LPAREN formals_opt RPAREN ARROW . typ COLON SEP stmt_block  (81)
+
+	FUNC  shift 144
+	BOOL  shift 145
+	INT  shift 146
+	FLOAT  shift 147
+	STRING  shift 148
+	ARR  shift 149
+	.  error
+
+	typ  goto 193
+
+
+state 186
+	stmt : DEF VARIABLE LPAREN formals_opt RPAREN COLON . SEP stmt_block  (80)
+
+	SEP  shift 194
+	.  error
+
+
+state 187
+	formal_list : formal_list COMMA bind_opt .  (112)
+
+	.  reduce 112
+
+
+state 188
+	list_access : exp LBRACK expr COLON expr RBRACK .  (107)
+
+	.  reduce 107
+
+
+state 189
+	stmt_block : INDENT stmt_list DEDENT .  (108)
+
+	.  reduce 108
+
+
+state 190
+	stmt : IF expr COLON SEP stmt_block ELSE COLON . SEP stmt_block  (84)
+
+	SEP  shift 195
+	.  error
+
+
+state 191
+	stmt : FOR bind_opt IN RANGE LPAREN expr RPAREN . COLON SEP stmt_block  (86)
+
+	COLON  shift 196
+	.  error
+
+
+state 192
+	stmt : FOR bind_opt IN expr COLON SEP stmt_block .  (85)
+
+	.  reduce 85
+
+
+state 193
+	stmt : DEF VARIABLE LPAREN formals_opt RPAREN ARROW typ . COLON SEP stmt_block  (81)
+
+	COLON  shift 197
+	.  error
+
+
+state 194
+	stmt : DEF VARIABLE LPAREN formals_opt RPAREN COLON SEP . stmt_block  (80)
+
+	INDENT  shift 172
+	.  error
+
+	stmt_block  goto 198
+
+
+state 195
+	stmt : IF expr COLON SEP stmt_block ELSE COLON SEP . stmt_block  (84)
+
+	INDENT  shift 172
+	.  error
+
+	stmt_block  goto 199
+
+
+state 196
+	stmt : FOR bind_opt IN RANGE LPAREN expr RPAREN COLON . SEP stmt_block  (86)
+
+	SEP  shift 200
+	.  error
+
+
+state 197
+	stmt : DEF VARIABLE LPAREN formals_opt RPAREN ARROW typ COLON . SEP stmt_block  (81)
+
+	SEP  shift 201
+	.  error
+
+
+state 198
+	stmt : DEF VARIABLE LPAREN formals_opt RPAREN COLON SEP stmt_block .  (80)
+
+	.  reduce 80
+
+
+state 199
+	stmt : IF expr COLON SEP stmt_block ELSE COLON SEP stmt_block .  (84)
+
+	.  reduce 84
+
+
+state 200
+	stmt : FOR bind_opt IN RANGE LPAREN expr RPAREN COLON SEP . stmt_block  (86)
+
+	INDENT  shift 172
+	.  error
+
+	stmt_block  goto 202
+
+
+state 201
+	stmt : DEF VARIABLE LPAREN formals_opt RPAREN ARROW typ COLON SEP . stmt_block  (81)
+
+	INDENT  shift 172
+	.  error
+
+	stmt_block  goto 203
+
+
+state 202
+	stmt : FOR bind_opt IN RANGE LPAREN expr RPAREN COLON SEP stmt_block .  (86)
+
+	.  reduce 86
+
+
+state 203
+	stmt : DEF VARIABLE LPAREN formals_opt RPAREN ARROW typ COLON SEP stmt_block .  (81)
+
+	.  reduce 81
+
+
+Rules never reduced:
+	actuals_opt :  (113)
+	actuals_opt : actuals_list  (114)
+	actuals_list : expr  (115)
+	actuals_list : actuals_list COMMA expr  (116)
+
+
+State 151 contains 1 shift/reduce conflict.
+State 153 contains 1 shift/reduce conflict.
+State 154 contains 1 shift/reduce conflict.
+State 155 contains 1 shift/reduce conflict.
+State 156 contains 1 shift/reduce conflict.
+State 157 contains 1 shift/reduce conflict.
+
+
+81 terminals, 21 nonterminals
+133 grammar rules, 204 states
