@@ -38,8 +38,18 @@ type expr =
   | Lambda of bind list * expr
   | Noexpr
 
-type stmt =
-  | Func of bind option * bind list * expr list * stmt (* name * formals list * partials list * body *)
+type func_decl = {
+  typ: typ;
+  fname : string option;
+  formals : bind list;
+  partials : expr list; 
+  body : stmt;
+  lambda : bool;
+  macro : bool;
+}
+
+and stmt =
+  | Func of func_decl (* name * formals list * partials list * body *)
   | Block of stmt list
   | Expr of expr
   | If of expr * stmt * stmt
@@ -112,7 +122,7 @@ let rec string_of_expr = function
   | Lambda(a, b) -> "lambda " ^ String.concat " " (List.map (fun (Bind(x, _)) -> x) a) ^ " : " ^ string_of_expr b
   
 let rec string_of_stmt indent = function
-  | Func(b, bl, pl, s) -> (String.make indent '\t') ^ "def " ^ (match b with | Some x -> string_of_bind x | None -> "") ^ "(" ^ String.concat ", " (List.map string_of_bind bl) ^ "):\n" ^ string_of_stmt (indent + 1) s
+  | Func(func) -> (String.make indent '\t') ^ "def " ^ (match func.fname with | Some x -> x | None -> "") ^ "(" ^ String.concat ", " (List.map string_of_bind func.formals) ^ "):\n" ^ string_of_stmt (indent + 1) func.body
   | Block(sl) -> String.concat "\n" (List.map (string_of_stmt indent) sl) ^ "\n"
   | Expr(e) -> (String.make indent '\t') ^ string_of_expr e
   | If(e, s1, s2) ->  (String.make indent '\t') ^ "if " ^ string_of_expr e ^ ":\n" ^ string_of_stmt (indent + 1) s1 ^ "else:\n" ^ string_of_stmt (indent + 1) s2

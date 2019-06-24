@@ -13,7 +13,7 @@ Note: if any token is added here, it must also be added in the token target belo
 and in the print utility in utilities.ml */
 
 %token NOELSE ASN EQ NEQ LT GT LEQ GEQ PLUS MINUS TIMES DIVIDE PLUSEQ MINUSEQ TIMESEQ DIVIDEEQ EXPEQ
-%token EXP NOT NEG SEP AND OR ARROW NOP TYPE FUNC CONTINUE PASS BREAK LAMBDA PIPE
+%token EXP NOT NEG SEP AND OR ARROW NOP TYPE FUNC CONTINUE PASS BREAK LAMBDA PIPE MACRO
 %token TAB SPACE COLON EOF EOL IF ELSE FOR WHILE COMMA DEF IN TRUE FALSE IS RETURN NONE DOT
 %token BOOL INT FLOAT STRING ARR
 %token CLASS IMPORT CEND RANGE
@@ -148,6 +148,7 @@ token:
   | RANGE { RANGE }
   | LAMBDA { LAMBDA }
   | PIPE { PIPE }
+  | MACRO { MACRO }
 
 /* program: the main program parser target. read a list of statements until EOF is reached.
 constructed backwards per the usual OCaml functional list syntax. */
@@ -189,8 +190,10 @@ stmt:
   | stmt SEP { $1 }
   | IMPORT VARIABLE SEP { Import($2) }
   | CLASS VARIABLE COLON SEP stmt_block { Class($2, $5) }
-  | DEF VARIABLE LPAREN formals_opt RPAREN COLON SEP stmt_block { Func(Some(Bind($2, Dyn)), $4, [], $8) }
-  | DEF VARIABLE LPAREN formals_opt RPAREN ARROW typ COLON SEP stmt_block { Func(Some(Bind($2, $7)), $4, [], $10) }
+  | MACRO SEP DEF VARIABLE LPAREN formals_opt RPAREN COLON SEP stmt_block { Func({typ = Dyn; fname = Some $4; formals = $6; partials = []; body = $10; lambda = false; macro = true; }) }
+  | MACRO SEP DEF VARIABLE LPAREN formals_opt RPAREN ARROW typ COLON SEP stmt_block { Func({typ = $9; fname = Some $4; formals = $6; partials = []; body = $12; lambda = false; macro = true;}) }
+  | DEF VARIABLE LPAREN formals_opt RPAREN COLON SEP stmt_block { Func({typ = Dyn; fname = Some $2; formals = $4; partials = []; body = $8; lambda = false; macro = false; }) }
+  | DEF VARIABLE LPAREN formals_opt RPAREN ARROW typ COLON SEP stmt_block { Func({typ = $7; fname = Some $2; formals = $4; partials = []; body = $10; lambda = false; macro = false;}) }
   | RETURN expr SEP { Return $2 }
   | IF expr COLON SEP stmt_block %prec NOELSE { If($2, $5, Block([])) }
   | IF expr COLON SEP stmt_block ELSE COLON SEP stmt_block { If($2, $5, $9) } /* to do figure out (Block) */

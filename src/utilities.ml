@@ -100,10 +100,12 @@ let print = function
   | Parser.PASS -> "PASS"
   | Parser.BREAK -> "BREAK"
   | Parser.CONTINUE -> "CONTINUE"
+  | Parser.MACRO -> "MACRO"
+  |Parser.PIPE -> "PIPE"
 
 (* stmt_to_string converts stmt to string for error handling *)
 let stmt_to_string = function
-  | Func(_, _, _,_) -> "func"
+  | Func(_) -> "func"
   | Block(_) -> "block"
   | Expr(_) -> "expr"
   | If(_, _, _) -> "if"
@@ -265,6 +267,7 @@ type flag = {
   inclass : bool;
   locals: (Ast.typ * Ast.typ * Ast.stmt option) StringMap.t;
   globals: (Ast.typ * Ast.typ * Ast.stmt option) StringMap.t;
+  call : bool; (* is evaluating call *)
 }
 
 type state_component = 
@@ -274,8 +277,10 @@ type state_component =
   | S_cond (* entering conditional branch *)
   | S_setmaps of ((Ast.typ * Ast.typ * Ast.stmt option) StringMap.t * (Ast.typ * Ast.typ * Ast.stmt option) StringMap.t) (* just set the locals and globals *)
   | S_class
+  | S_call
 
 let change_state the_state = function
+  | S_call -> {the_state with call = true; }
   | S_func -> if the_state.func then the_state else { the_state with globals = the_state.locals; }
   | S_noeval(locals) -> { the_state with noeval = true; forloop = false; cond = false; stack = TypeMap.empty; locals = locals; func = true; globals = StringMap.empty; }
   | S_cond -> { the_state with cond = true; }

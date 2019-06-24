@@ -156,9 +156,12 @@ let parse_imports li =
   let rec aux out = function
     | [] -> List.rev out
     | Import(name) :: t -> 
-        let program = ast_from_path (fix_extension name) in
-        aux ((List.rev program) @ out) t
-    | Func(a, b, partials, s1) :: t -> let updated = aux [] (from_block s1) in aux (Func(a, b, partials, Block(updated)) :: out) t
+        (try 
+          let program = ast_from_path (fix_extension name) in
+          aux ((List.rev program) @ out) t
+        with 
+          | Failure e -> aux ((Import e) :: out) t)
+    | Func(func) :: t -> let updated = aux [] (from_block func.body) in aux (Func({func with body = Block(updated)}) :: out) t
     | Block(s1) :: t -> let updated = aux [] s1 in aux (Block(updated) :: out) t
     | If(a, s1, s2) :: t -> let u1 = aux [] (from_block s1) in let u2 = aux [] (from_block s2) in aux (If(a, Block(u1), Block(u2)) :: out) t
     | For(a, b, s1) :: t -> let updated = aux [] (from_block s1) in aux (For(a, b, Block(updated)) :: out) t
@@ -211,7 +214,7 @@ let rec strip_after_stmt = function
   | For(a, b, c) -> For(a, b, strip_after_stmt c)
   | Range(a, b, c) -> Range(a, b, strip_after_stmt c)
   | Block(x) -> Block(strip_after [] x)
-  | Func(a, b, c, d) -> Func(a, b, c, strip_after_stmt d)
+  | Func(func) -> Func({func with body = strip_after_stmt func.body})
   | _ as x -> x
 
 and strip_after out = function
@@ -292,10 +295,7 @@ let rec from_console map past run =
         formatted @ (read curr stack'))
 
 
-    in let header_program = ast_from_path "headers.py" in 
-    let (_, map') = (Semant.check [] [] { forloop = false; inclass = false; cond = false; noeval = false; stack = TypeMap.empty; func = false; locals = map; globals = map; } header_program) in (* temporarily here to check validity of SAST *)
-
-    let formatted = ref (read 0 base) in
+    in let formatted = ref (read 0 base) in
     let _ = if !debug then (Printf.printf "Lexer: ["; (List.iter (Printf.printf "%s ") (List.map print !formatted); print_endline "]\n")) in (* print debug messages *)
 
     (* hack I found online to convert lexbuf list to a map from lexbuf to Parser.token, needed for Ocamlyacc *)
@@ -308,24 +308,20 @@ let rec from_console map past run =
     let imported_program = parse_imports program in
     let after_program = strip_after [] imported_program in
     let () = if !debug then print_endline ((string_of_program after_program)); flush stdout in (* print debug messages *)
-    let (sast, map') = (Semant.check [] [] { forloop = false; inclass = false; cond = false; noeval = false; stack = TypeMap.empty; func = false; locals = map'; globals = map'; } after_program) in (* temporarily here to check validity of SAST *)
+    let (sast, map') = (Semant.check [] [] { forloop = false; inclass = false; cond = false; noeval = false; stack = TypeMap.empty; func = false; locals = map; globals = map; call = false; } (past @ after_program)) in (* temporarily here to check validity of SAST *)
     let _ = if !debug then print_endline (string_of_sprogram sast) in (* print debug messages *)
 
     if run then
-        let channel = open_out_gen [Open_creat; Open_text; Open_wronly] 0o640 "parsed.py" in 
-        Printf.fprintf channel "%s" "import functools\n";
-        close_out channel;
-
         let _ = cmd_to_list "sed -i '' 's/print\(.*\)//g' parsed.py" in
-        let channel = open_out_gen [Open_creat; Open_text; Open_append] 0o640 "parsed.py" in 
+        let channel = open_out_gen [Open_append; Open_creat] 0o666 "parsed.py" in 
         Printf.fprintf channel "%s" (string_of_sprogram sast);
         close_out channel;
         let output = cmd_to_list "python parsed.py" in
         List.iter print_endline output;
 
     let (sast, globals) = sast in
-    let sast = (strip_return [] sast, globals) in   
-    flush stdout; from_console map' after_program run
+    let sast = (strip_return [] sast, globals) in
+    flush stdout; from_console map' [] run
 
   with
     | Not_found -> Printf.printf "NotFoundError: unknown error\n"; from_console map past run
@@ -343,14 +339,10 @@ let rec from_file map fname run = (* todo combine with loop *)
     let original_path = Sys.getcwd () in
     let program = Sys.chdir (Filename.dirname fname); ast_from_path (Filename.basename fname) in
 
-    let header_program = ast_from_path "headers.py" in 
-    let (_, map') = (Semant.check [] [] { forloop = false; inclass = false; cond = false; noeval = false; stack = TypeMap.empty; func = false; locals = map; globals = map; } header_program) in (* temporarily here to check validity of SAST *)
-
-
     let imported_program = parse_imports program in
     let after_program = strip_after [] imported_program in
     let () = if !debug then print_endline ((string_of_program after_program)); flush stdout in (* print debug messages *)
-    let (sast, map') = (Semant.check [] [] { forloop = false; inclass = false; cond = false; noeval = false; stack = TypeMap.empty; func = false; globals = map'; locals = map'; } after_program) in (* temporarily here to check validity of SAST *)
+    let (sast, map') = (Semant.check [] [] { forloop = false; inclass = false; cond = false; noeval = false; stack = TypeMap.empty; func = false; globals = map; locals = map; call = false; } after_program) in (* temporarily here to check validity of SAST *)
     let _ = if !debug then print_endline (string_of_sprogram sast) in (* print debug messages *)
     
     if run then
@@ -372,15 +364,24 @@ anonymous argument (file path) and runs either the interpreter or the from_file 
 
 let () =
   Arg.parse speclist (fun path -> if not !fpath_set then fpath := path; fpath_set := true; ) usage; (* parse command line arguments *)
-  let emptymap = StringMap.empty in 
 
   let output = cmd_to_list "truncate -s 0 parsed.py" in
 
-  if !fpath_set then from_file emptymap !fpath !run
+  let header_program = ast_from_path "headers.py" in 
+  let (_, map) = (Semant.check [] [] { forloop = false; inclass = false; cond = false; noeval = false; stack = TypeMap.empty; func = false; locals = StringMap.empty; globals = StringMap.empty; call = false; } header_program) in (* temporarily here to check validity of SAST *)
+
+  let import_program = ast_from_path "imports.py" in 
+  let (sast, map') = (Semant.check [] [] { forloop = false; inclass = false; cond = false; noeval = false; stack = TypeMap.empty; func = false; locals = map; globals = map; call = false; } import_program) in (* temporarily here to check validity of SAST *)
+  
+  let channel = open_out "parsed.py" in 
+    Printf.fprintf channel "%s" (string_of_sprogram sast);
+  close_out channel;
+
+  if !fpath_set then from_file map' !fpath !run
   else
   ( 
     Printf.printf "Welcome to the Bash programming language!\n\n"; flush stdout; 
     try 
-      from_console emptymap [] !run 
+      from_console map' [] !run 
     with Scanner.Eof -> exit 0
   )

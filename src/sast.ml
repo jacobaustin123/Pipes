@@ -66,6 +66,7 @@ and sstmt = (* this can be refactored using Blocks, but I haven't quite figured 
   | SAsn of lvalue list * sexpr (* x : int = sexpr, (Bind(x, int), sexpr) *)
   | STransform of string * typ * typ 
   | SStage of sstmt * sstmt * sstmt (* entry, body, exit *)
+  | SImport of string
   | SType of sexpr
   | SContinue
   | SBreak
@@ -90,7 +91,7 @@ and string_of_sexp p = function
   | SLit(l) -> string_of_lit l
   | SVar(str) -> str
   | SUnop(o, e) -> string_of_uop o ^ string_of_sexpr p e
-  | SCall(e, el, s) -> string_of_sexpr p e ^ "(" ^ String.concat ", " (List.map (string_of_sexpr p) el) ^ ")"
+  | SCall(e, el, s) -> string_of_sexpr false e ^ "(" ^ String.concat ", " (List.map (string_of_sexpr p) el) ^ ")"
   | SMethod(obj, m, el) -> string_of_sexpr p obj ^ "." ^ m ^ "(" ^ String.concat ", " (List.map (string_of_sexpr p) el) ^ ")"
   | SField(obj, s) -> string_of_sexpr p obj ^ "." ^ s
   | SList(el, t) -> "[" ^ String.concat ", " (List.map (string_of_sexpr p) el) ^ "]"
@@ -119,7 +120,7 @@ and string_of_sstmt depth = function
   | SContinue -> (String.make depth '\t') ^ "continue"
   | SNop -> ""
   | SPass -> (String.make depth '\t') ^ "pass"
-  | _ -> ""
+  | SImport(e) -> "import " ^ e
 
 and string_of_lvalue = function
   | SLVar(sbind) -> string_of_sbind sbind

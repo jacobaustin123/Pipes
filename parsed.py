@@ -1,6 +1,16 @@
 import functools
-def foo(x, y):
-	return x
+import os
+def ls():
+	return os.listdir()
 
-z = functools.partial(foo, 3)
-z(3, 4)
+def cd(path):
+	os.chdir(path)
+
+def pwd():
+	return os.getcwd()
+filter(lambda x: x.endswith(".py"), ["hello.py"])
+
+
+
+
+print(list(map(lambda x: x.split(".")[0] + ".csv", filter(lambda x: x.endswith(".py"), ls()))))

@@ -81,7 +81,10 @@ and exp the_state = function
   | Var(Bind(x, t)) -> (* parse a Var, throwing an error if they are not found in the global lookup table *)
     if StringMap.mem x the_state.locals then (* if found in locals *)
     if (StringMap.mem x the_state.globals) && the_state.noeval && the_state.func then (Dyn, SVar(x), None) (* we're inside a Func and this is a global *)
-    else let (t', typ, data) = StringMap.find x the_state.locals in (typ, SVar(x), data)
+    else let (t', typ, data) = StringMap.find x the_state.locals in 
+    (match data with 
+      | Some Func(func) when func.macro && not the_state.call -> exp (change_state the_state S_call) (Call((Var(Bind(x, t))), []))
+      | _ -> (typ, SVar(x), data))
     else if the_state.noeval && the_state.func then (* we're inside a Func and this is also potentially a global that will be defined in the future *)
       let () = debug ("noeval set and possible global for " ^ x) in 
       let () = possible_globals := (Bind(x, Dyn)) :: !possible_globals in (Dyn, SVar(x), None) 
@@ -150,7 +153,7 @@ and exp the_state = function
 
     let bindout = List.rev binds in
     let (t, e, d) = (expr (change_state the_state (S_noeval(map))) body) in
-    (FuncType, SLambda(vars, e), Some(Func(None, vars, [], Return(body))))
+    (FuncType, SLambda(vars, e), Some(Func({fname = None; typ = t; formals = vars; partials = []; body = Return(body); lambda = true; macro = false; })))
 
   | Call(exp, args) -> (* parse Call, checking that the LHS is a function, matching arguments and types, evaluating the body *)
     let (t, e, data) = expr the_state exp in
@@ -165,15 +168,18 @@ and exp the_state = function
     (match data with 
       | Some(x) -> 
         (match x with 
-          | Func(name, formals, partials, body) -> (* if evaluating the expression returns a function *)
-            let param_length = List.length args in
-            if (List.length formals - List.length partials) <> param_length 
-            then if param_length <> 0 then 
-            let partials = partials @ args in 
-            let new_partials = List.map (fun x -> let (_, e, _) = expr the_state x in e) partials in
-            (FuncType, SPartial(e, new_partials), Some(Func(name, formals, partials, body)))
-            else raise (Failure (Printf.sprintf "SSyntaxError: unexpected number of arguments in function call (expected %d but found %d)" (List.length formals - List.length partials) param_length))
+          | Func(func) -> (* if evaluating the expression returns a function *)
 
+            let param_length = List.length args in
+            if (List.length func.formals - List.length func.partials) <> param_length 
+            then if param_length <> 0 then 
+            (* let () = Printf.printf "call with param_length: %d, formals_length: %d, partials_length: %d, args_length: %d\n" param_length (List.length func.formals) (List.length func.partials) (List.length args) in  *)
+
+            let fargs = func.partials @ args in (* full args *)
+            let sfargs = List.map (fun x -> let (_, e, _) = expr the_state x in e) fargs in (* evaluated full args *)
+            (FuncType, SPartial(e, sfargs), Some(Func({func with partials = fargs})))
+            else raise (Failure (Printf.sprintf "SSyntaxError: unexpected number of arguments in function call (expected %d but found %d)" (List.length func.formals - List.length func.partials) param_length))
+            
             else let rec handle_args (map, bindout, exprout) bind exp = (* add args to a given map *)
                 let data = expr the_state exp in 
                 let (t', e', _) = data in 
@@ -184,9 +190,11 @@ and exp the_state = function
             let clear_explicit_types map = StringMap.map (fun (a, b, c) -> (Dyn, b, c)) map in (* ignore dynamic types when not in same scope *)
 
             let fn_namespace = clear_explicit_types the_state.globals in (* we use this map to allow us to overwrite explicit global types *)
-            let (map', bindout, exprout) = (List.fold_left2 handle_args (fn_namespace, [], []) formals (partials @ args)) in (* add args to globals *)
-            let map'' = match name with
-              | Some fn_name -> let (map'', _, _, _) = assign map' (Dyn, (SCall (e, (List.rev exprout), transforms), Dyn), data) fn_name in map'' (* add the function itself to the namespace *)
+            let fargs = func.partials @ args in (* full args *)
+            let (map', bindout, exprout) = (List.fold_left2 handle_args (fn_namespace, [], []) func.formals fargs) in (* add args to globals *)
+            
+            let map'' = match func.fname with
+              | Some fn_name -> let (map'', _, _, _) = assign map' (Dyn, (SCall (e, (List.rev exprout), transforms), Dyn), data) (Bind(fn_name, func.typ)) in map'' (* add the function itself to the namespace *)
               | None -> map'
 
             in let (_, types) = split_sbind bindout in
@@ -194,33 +202,32 @@ and exp the_state = function
             if the_state.func && TypeMap.mem (x, types) the_state.stack then let () = debug "recursive callstack return" in (Dyn, SCall(e, (List.rev exprout), transforms), None)
             else let stack' = TypeMap.add (x, types) true the_state.stack in (* check recursive stack *)
 
-            let (map2, block, data, locals) = (stmt {the_state with stack = stack'; func = true; locals = map''; } body) in
+            let (map2, block, data, locals) = (stmt {the_state with stack = stack'; func = true; locals = map''; call = true} func.body) in
 
             (match data with (* match return type with *)
               | Some (typ2, e', d) -> (* it did return something *)
-                  (match name with
+                  (match func.fname with
                     | None -> 
-                        let func = { styp = typ2; sfname = None; sformals = (List.rev bindout); slocals = locals; sbody = block } in 
-                        (typ2, (SCall(e, (List.rev exprout), SFunc(func))), d) 
+                        let sfunc = { styp = typ2; sfname = None; sformals = (List.rev bindout); slocals = locals; sbody = block } in 
+                        (typ2, (SCall(e, (List.rev exprout), SFunc(sfunc))), d) 
                     | Some fn_name -> 
-                        let Bind(n1, btype) = fn_name in 
-                        if btype <> Dyn && btype <> typ2 then if typ2 <> Dyn 
-                        then raise (Failure (Printf.sprintf "STypeError: invalid return type (expected %s but found %s)" (string_of_typ btype) (string_of_typ typ2))) 
-                        else let func = { styp = btype; sfname = Some n1; sformals = (List.rev bindout); slocals = locals; sbody = block } in 
-                          (btype, (SCall(e, (List.rev exprout), SFunc(func))), d) 
-                        else let func = { styp = typ2; sfname = Some n1; sformals = (List.rev bindout); slocals = locals; sbody = block } in (* case where definite return type and Dynamic inferrence still has  bind*)
-                        (typ2, (SCall(e, (List.rev exprout), SFunc(func))), d))
+                        if func.typ <> Dyn && func.typ <> typ2 then if typ2 <> Dyn 
+                        then raise (Failure (Printf.sprintf "STypeError: invalid return type (expected %s but found %s)" (string_of_typ func.typ) (string_of_typ typ2))) 
+                        else let sfunc = { styp = func.typ; sfname = func.fname; sformals = (List.rev bindout); slocals = locals; sbody = block } in 
+                          (func.typ, (SCall(e, (List.rev exprout), SFunc(sfunc))), d) 
+                        else let sfunc = { styp = typ2; sfname = func.fname; sformals = (List.rev bindout); slocals = locals; sbody = block } in (* case where definite return type and Dynamic inferrence still has  bind*)
+                        (typ2, (SCall(e, (List.rev exprout), SFunc(sfunc))), d))
               
               | None -> (* function didn't return anything, null function *)
-                  (match name with
+                  (match func.fname with
                     | None -> 
-                        let func = { styp = Null; sfname = None; sformals = (List.rev bindout); slocals = locals; sbody = block } in 
-                        (Null, (SCall(e, (List.rev exprout), SFunc(func))), None)
+                        let sfunc = { styp = Null; sfname = None; sformals = (List.rev bindout); slocals = locals; sbody = block } in 
+                        (Null, (SCall(e, (List.rev exprout), SFunc(sfunc))), None)
                     | Some fn_name -> 
-                      let Bind(n1, btype) = fn_name in if btype <> Dyn then
-                      raise (Failure (Printf.sprintf "STypeError: invalid return type (expected %s but found None)" (string_of_typ btype))) else
-                      let func = { styp = Null; sfname = Some n1; sformals = (List.rev bindout); slocals = locals; sbody = block } in
-                      (Null, (SCall(e, (List.rev exprout), SFunc(func))), None)))
+                      if func.typ <> Dyn then
+                      raise (Failure (Printf.sprintf "STypeError: invalid return type (expected %s but found None)" (string_of_typ func.typ))) else
+                      let sfunc = { styp = Null; sfname = func.fname; sformals = (List.rev bindout); slocals = locals; sbody = block } in
+                      (Null, (SCall(e, (List.rev exprout), SFunc(sfunc))), None)))
 
           | _ -> raise (Failure ("SCriticalFailure: unexpected type encountered internally in Call evaluation"))) (* can be expanded to allow classes in the future *)
       
@@ -280,6 +287,7 @@ and assign map data bind =
   else if typ = Dyn then let m' = StringMap.add n (t, t, data) map in (m', n, t, t) (*  *)
   else raise (Failure (Printf.sprintf "STypeError: expression of type %s cannot be assigned to variable '%s' with explicit type %s" (string_of_typ typ) n (string_of_typ t)))
 
+and add_temp map name = StringMap.add name (Dyn, Dyn, None) map
 
 (* makes sure an array type can be assigned to a given variable. used for for loops mostly *)
 and check_array the_state e b = 
@@ -347,6 +355,7 @@ and stmt the_state = function (* evaluates statements, can pass it a func *)
       (the_state.locals, SReturn(e'), (Some data), [])
 
   | Pass -> (the_state.locals, SPass, None, [])
+  | Import e -> let map = add_temp the_state.locals e in (map, SImport e, None, [])
 
   | Block(s) -> 
       if not the_state.func then let ((value, globals), map') = check [] [] the_state s 
@@ -386,42 +395,44 @@ and stmt the_state = function (* evaluates statements, can pass it a func *)
       
     in let (m, lvalues, locals) = aux (the_state.locals, [], []) exprs in (m, SAsn(lvalues, e'), None, locals)
 
-  | Func(a, b, c, d) -> (* c is partials, should be empty *)
-    let Bind(fn_name, btype) = match a with 
-      | None -> raise (Failure ("SCriticalError: lambda evaluation in func call."))
-      | Some x -> x
+  | Func(func) -> (* c is partials, should be empty *)
     
+    let fn_name = (match func.fname with
+      | Some name -> name
+      | None -> raise (Failure "SCriticalFailure: lambda in function evaluation");
+    )
+
     in let rec dups = function (* check duplicate argument names *)
       | [] -> ()
       | (Bind(n1, _) :: Bind(n2, _) :: _) when n1 = n2 -> 
           raise (Failure ("SSyntaxError: duplicate argument '" ^ n1 ^ "' in definition of function " ^ fn_name))
       | _ :: t -> dups t
-    in let _ = dups (List.sort (fun (Bind(a, _)) (Bind(b, _)) -> compare a b) b) in 
+    in let _ = dups (List.sort (fun (Bind(a, _)) (Bind(b, _)) -> compare a b) func.formals) in 
 
     let the_state = change_state the_state S_func in
-    let (map', _, _, _) = assign the_state.locals (FuncType, (SNoexpr, FuncType), Some(Func(a, b, c, d))) (Bind(fn_name, Dyn)) in
-    let (semantmap, _, _, _) = assign StringMap.empty (FuncType, (SNoexpr, FuncType), Some(Func(a, b, c, d))) (Bind(fn_name, Dyn)) in (* empty map for semantic checking *)
+    let (map', _, _, _) = assign the_state.locals (FuncType, (SNoexpr, FuncType), Some(Func(func))) (Bind(fn_name, Dyn)) in
+    let (semantmap, _, _, _) = assign StringMap.empty (FuncType, (SNoexpr, FuncType), Some(Func(func))) (Bind(fn_name, Dyn)) in (* empty map for semantic checking *)
 
     let (map'', binds) = List.fold_left 
       (fun (map, out) (Bind(x, t)) -> 
         let (map', name, inferred_t, explicit_t) = assign map (Dyn, (SNoexpr, Dyn), None) (Bind(x, t)) in 
         (map', (Bind(name, explicit_t)) :: out)
-      ) (semantmap, []) b in
+      ) (semantmap, []) func.formals in
 
     let bindout = List.rev binds in
-    let (map2, block, data, locals) = (stmt (change_state the_state (S_noeval(map''))) d) in
+    let (map2, block, data, locals) = (stmt (change_state the_state (S_noeval(map''))) func.body) in
       (match data with
         | Some (typ2, e', d) ->
-            if btype <> Dyn && btype <> typ2 then if typ2 <> Dyn then 
+            if func.typ <> Dyn && func.typ <> typ2 then if typ2 <> Dyn then 
             raise (Failure ("STypeError: invalid return type " ^ string_of_typ typ2 ^ " from function " ^ fn_name)) else 
-            let func = { styp = btype; sfname = Some fn_name; sformals = bindout; slocals = locals; sbody = block } in 
+            let func = { styp = func.typ; sfname = Some fn_name; sformals = bindout; slocals = locals; sbody = block } in 
               (map', SFunc(func), None, [Bind(fn_name, FuncType)]) else
               let func = { styp = typ2; sfname = Some fn_name; sformals = bindout; slocals = locals; sbody = block } in 
             (map', SFunc(func), None, [Bind(fn_name, FuncType)])
         
         | None -> 
-          if btype <> Dyn then 
-          raise (Failure ("STypeError: expected return type " ^ (string_of_typ btype) ^ " from function " ^ fn_name ^ " but found None")) else 
+          if func.typ <> Dyn then 
+          raise (Failure ("STypeError: expected return type " ^ (string_of_typ func.typ) ^ " from function " ^ fn_name ^ " but found None")) else 
           let func = { styp = Null; sfname = Some fn_name; sformals = bindout; slocals = locals; sbody = block } in 
           (map', SFunc(func), None, [Bind(fn_name, FuncType)]))
 

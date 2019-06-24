@@ -25,5 +25,5 @@ a = bar(3)
 z = lambda x : x + 1
 z(5)
 
-ls | filter (lambda x : x.endswith(".txt")) | map (lambda x : x.split(".")[0])
+print(list(ls | filter (lambda x : x.endswith(".txt")) | map (lambda x : x.split(".")[0])))
 

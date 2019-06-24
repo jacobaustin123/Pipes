@@ -78,6 +78,7 @@ rule token = parse
   | "==" { EQ }
   | '=' { ASN }  
   | ';' { SEP }
+  | "@macro" { MACRO }
   | "->" { ARROW }
   | "type" { TYPE }
   | "import" { IMPORT }
