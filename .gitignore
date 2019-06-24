@@ -24,6 +24,7 @@ setup.log
 
 # for testing, not source code
 gcd.coral
+bash
 *.log
 source.*
 main
